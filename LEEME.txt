@@ -1,0 +1,7 @@
+INVITACION WEB MIS XV
+
+1. Abre index.html para probarla.
+2. En index.html reemplaza: NOMBRE DE LA QUINCEAÑERA, fecha, hora, lugar, dirección, cupos y fecha límite.
+3. Sustituye el número 573000000000 del enlace de WhatsApp por el número real con indicativo de país, sin + ni espacios.
+4. En script.js cambia eventDate usando formato AAAA-MM-DDTHH:MM:SS-05:00.
+5. Para publicar gratis: arrastra esta carpeta en Netlify Drop o súbela a GitHub Pages. La cuenta y contraseña deben quedar a nombre del propietario; no compartas contraseñas por chat.
