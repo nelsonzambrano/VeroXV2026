@@ -24,55 +24,94 @@ setInterval(updateCountdown, 60000);
 const music = document.getElementById('backgroundMusic');
 const musicButton = document.getElementById('musicButton');
 
+function updateMusicButton(isPlaying) {
+    if (!musicButton) {
+        return;
+    }
+
+    if (isPlaying) {
+        musicButton.textContent = '❚❚';
+        musicButton.classList.add('playing');
+        musicButton.setAttribute('aria-label', 'Pausar música');
+        musicButton.setAttribute('title', 'Pausar música');
+    } else {
+        musicButton.textContent = '▶';
+        musicButton.classList.remove('playing');
+        musicButton.setAttribute('aria-label', 'Reproducir música');
+        musicButton.setAttribute('title', 'Reproducir música');
+    }
+}
+
+async function startMusic() {
+    if (!music || !music.paused) {
+        return;
+    }
+
+    try {
+        music.volume = 0.35;
+        await music.play();
+
+        updateMusicButton(true);
+        removeActivationListeners();
+
+        console.log('Música iniciada correctamente');
+    } catch (error) {
+        updateMusicButton(false);
+
+        console.log(
+            'Autoplay bloqueado por el navegador:',
+            error.name,
+            error.message
+        );
+    }
+}
+
+function activateMusic() {
+    startMusic();
+}
+
+function removeActivationListeners() {
+    document.removeEventListener('pointerdown', activateMusic);
+    document.removeEventListener('touchstart', activateMusic);
+    document.removeEventListener('keydown', activateMusic);
+    document.removeEventListener('wheel', activateMusic);
+}
+
 if (music) {
     music.volume = 0.35;
 
-    async function startMusic() {
-        try {
-            await music.play();
+    // Primer intento automático
+    if (document.readyState === 'complete') {
+        startMusic();
+    } else {
+        window.addEventListener('load', startMusic, { once: true });
+    }
 
-            if (musicButton) {
-                musicButton.textContent = '♫';
-                musicButton.classList.add('playing');
-                musicButton.setAttribute('aria-label', 'Silenciar música');
-                musicButton.setAttribute('title', 'Silenciar música');
-            }
+    // Alternativa tras la primera interacción en cualquier lugar
+    document.addEventListener('pointerdown', activateMusic, { once: true });
+    document.addEventListener('touchstart', activateMusic, {
+        once: true,
+        passive: true
+    });
+    document.addEventListener('keydown', activateMusic, { once: true });
+    document.addEventListener('wheel', activateMusic, {
+        once: true,
+        passive: true
+    });
 
-            removeUnlockListeners();
-        } catch (error) {
-            console.info(
-                'El navegador bloqueó el autoplay. La música comenzará con la primera interacción.'
-            );
+    music.addEventListener('play', () => updateMusicButton(true));
+    music.addEventListener('pause', () => updateMusicButton(false));
+}
+
+if (musicButton && music) {
+    musicButton.addEventListener('click', async event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (music.paused) {
+            await startMusic();
+        } else {
+            music.pause();
         }
-    }
-
-    function removeUnlockListeners() {
-        document.removeEventListener('click', startMusic);
-        document.removeEventListener('touchstart', startMusic);
-        document.removeEventListener('keydown', startMusic);
-    }
-
-    // Primer intento automático al cargar la página
-    window.addEventListener('load', startMusic);
-
-    // Alternativa si el navegador bloquea el autoplay
-    document.addEventListener('click', startMusic);
-    document.addEventListener('touchstart', startMusic);
-    document.addEventListener('keydown', startMusic);
-
-    if (musicButton) {
-        musicButton.addEventListener('click', async (event) => {
-            event.stopPropagation();
-
-            if (music.paused) {
-                await startMusic();
-            } else {
-                music.pause();
-                musicButton.textContent = '♪';
-                musicButton.classList.remove('playing');
-                musicButton.setAttribute('aria-label', 'Reproducir música');
-                musicButton.setAttribute('title', 'Reproducir música');
-            }
-        });
-    }
+    });
 }
